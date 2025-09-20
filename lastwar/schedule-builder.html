@@ -1,103 +1,112 @@
 <!DOCTYPE html>
-<html lang="th">
+<html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Schedule Builder • Vue.js</title>
   <style>
-    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;margin:0;background:#fff;}
-    .app{max-width:1200px;margin:24px auto;padding:0 16px;}
-    h1{font-size:28px;margin:8px 0 16px;text-align:center}
-    h2{font-size:18px;margin:24px 0 8px}
+    /* ===== Base Reset ===== */
+    html, body { margin:0; padding:0; box-sizing:border-box; width:100%; max-width:100%; overflow-x:hidden; }
+    *, *::before, *::after { box-sizing:inherit; }
+    body { font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif; background:#fff; }
+    .app { max-width:1200px; margin:24px auto; padding:0 16px; }
+    h1 { font-size:28px; margin:8px 0 16px; text-align:center }
+    h2 { font-size:18px; margin:24px 0 8px }
 
-    /* ===== Label List ===== */
+    /* ===== Visibility (force with !important) ===== */
+    .desktop-only { display:block !important; }
+    .mobile-only  { display:none !important; }
+
+    /* ===== Table wrapper ===== */
+    .table-responsive { width:100%; overflow-x:auto; -webkit-overflow-scrolling:touch; }
+    .table-responsive table { min-width:600px; }
+
+    /* ===== Label List (Desktop Table) ===== */
     .label-table{width:100%;border-collapse:collapse;margin-top:12px;table-layout:auto}
-    .label-table th, .label-table td{
-      border:1px solid #d1d5db;padding:6px 8px;text-align:left;vertical-align:middle;
-    }
+    .label-table th, .label-table td{border:1px solid #d1d5db;padding:6px 8px;text-align:left;vertical-align:middle;}
     .label-table th{background:#f3f4f6}
-    .label-table input{width:100%;box-sizing:border-box;padding:4px 6px}
+    .label-table input{width:100%;padding:4px 6px}
     .label-col-drag{width:48px;text-align:center}
     .label-col-visible{width:70px;text-align:center}
     .label-col-action{width:110px;text-align:center}
     .row-hidden{opacity:.45;background:#fafafa}
-
-    /* ===== Schedule (centered with flex + padding) ===== */
-    .schedule-center{
-      display:flex;
-      justify-content:center;
-      margin-top:40px;
-      width:100%;
-    }
-    .schedule-wrapper{
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      padding:30px;
-      background:#fff;
-      border-radius:12px;
-    }
-    .schedule-title{
-      font-size:32px;
-      font-weight:700;
-      margin-bottom:16px;
-      text-align:center;
-      white-space:nowrap;
-    }
-    .tz-table{
-      border-collapse:collapse;
-      table-layout:auto;
-      white-space:nowrap;
-    }
-    .tz-table th, .tz-table td{
-      border:1px solid #d1d5db;
-      padding:10px 14px;
-      text-align:center;
-      vertical-align:middle;
-    }
-    .tz-table th{background:#f3f4f6}
-    .tz-col-label{text-align:left;padding-left:10px;white-space:nowrap;}
-    .desc{font-size:12px;color:#6b7280;display:block;margin-top:2px;white-space:normal;}
-
-    /* ===== Buttons / Utils ===== */
-    .control{margin:8px 0}
-    input,button,select{padding:6px 10px;margin:2px;border:1px solid #cbd5e1;border-radius:6px}
-    button{cursor:pointer;background:#111827;color:#fff}
-    button.ghost{background:#f3f4f6;color:#111827;border-color:#d1d5db}
-    button:disabled{opacity:.5;cursor:not-allowed}
-    .time{font-feature-settings:"tnum";font-variant-numeric:tabular-nums;font-size:16px;font-weight:700}
-    .dow{font-size:12px;color:#6b7280}
-
-    /* Show/Hide toggle button */
-    .toggle-btn{
-      width:24px;height:24px;border-radius:50%;border:none;cursor:pointer;display:inline-block;
-    }
-    .toggle-green{background:#16a34a}
-    .toggle-red{background:#dc2626}
-
     .handle{cursor:grab;user-select:none;font-size:18px;line-height:1;display:inline-block;padding:2px 6px;}
     .handle:active{cursor:grabbing;}
     .sortable-ghost{background:#e0f2fe !important;}
     .sortable-chosen{opacity:.9;}
 
-    /* ===== Modal ===== */
-    .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;}
-    .modal{background:#fff;border-radius:8px;max-width:420px;width:100%;padding:20px;box-shadow:0 4px 20px rgba(0,0,0,.2);}
-    .modal h3{margin-top:0;font-size:18px}
-    .modal-footer{margin-top:20px;text-align:right}
+    /* ===== Label List (Mobile Cards) ===== */
+    .label-list-mobile { display:flex; flex-direction:column; gap:12px; }
+    .label-card { position:relative; border:1px solid #e5e7eb; border-radius:10px; padding:10px 12px 12px; background:#fff; }
+    .label-card.row-hidden { opacity:.55; }
+    .label-card-header{ display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+    .handle-mobile{
+      cursor:grab; user-select:none; font-size:18px; padding:6px 8px; border-radius:8px;
+      background:#f3f4f6; display:flex; align-items:center; justify-content:center; min-width:36px; min-height:36px;
+    }
+    .handle-mobile:active{cursor:grabbing;}
+    .label-card-header .name{flex:1;}
+    .label-card-header .name input{width:100%; padding:10px 12px; border:1px solid #cbd5e1; border-radius:8px;}
+    .toggle-btn-sm{width:24px;height:24px;border-radius:50%;border:none;cursor:pointer;display:inline-block;}
+    .toggle-green{background:#16a34a}
+    .toggle-red{background:#dc2626}
+    .label-card-body{display:grid;gap:8px;}
+    .label-card-body input{width:100%; padding:10px 12px; border:1px solid #cbd5e1; border-radius:8px;}
+    .label-card-footer{display:flex;justify-content:flex-end;margin-top:8px;}
+    .btn-icon{background:none;border:none;cursor:pointer;font-size:20px;line-height:1;}
+
+    /* ===== Schedule ===== */
+    .schedule-center{display:flex;justify-content:center;margin-top:40px;width:100%;padding:0 8px;}
+    .schedule-wrapper{display:flex;flex-direction:column;align-items:center;padding:30px;background:#fff;border-radius:12px;max-width:100%;}
+    .schedule-title{font-size:32px;font-weight:700;margin-bottom:16px;text-align:center;white-space:nowrap;}
+    .tz-table{border-collapse:collapse;white-space:nowrap;}
+    .tz-table th, .tz-table td{border:1px solid #d1d5db;padding:10px 14px;text-align:center;}
+    .tz-table th{background:#f3f4f6}
+    .tz-col-label{text-align:left;padding-left:10px;}
+    .time{font-feature-settings:"tnum";font-variant-numeric:tabular-nums;font-weight:700}
+    .desc{font-size:12px;color:#6b7280;display:block;margin-top:2px;}
+
+    /* ===== Buttons ===== */
+    .control{margin:8px 0}
+    input,button,select{padding:6px 10px;margin:2px;border:1px solid #cbd5e1;border-radius:6px}
+    button{cursor:pointer;background:#111827;color:#fff}
+    button.ghost{background:#f3f4f6;color:#111827;border-color:#d1d5db}
+    button:disabled{opacity:.5;cursor:not-allowed}
 
     /* ===== Footer ===== */
-    .footer{
-      text-align:center;
-      font-size:13px;
-      color:#6b7280;
-      margin-top:40px;
+    .footer{text-align:center;font-size:13px;color:#6b7280;margin-top:40px;padding:0 16px 24px;}
+
+    /* ===== Modal ===== */
+    .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;z-index:1000;}
+    .modal{background:#fff;border-radius:8px;max-width:420px;width:100%;padding:20px;box-shadow:0 4px 20px rgba(0,0,0,.2);z-index:1001;}
+    .modal h3{margin-top:0;font-size:18px}
+    .modal-footer{
+      margin-top:20px;
+      display:flex;
+      justify-content:center;
+      gap:24px;
+    }
+    .modal-footer button{
+      min-width:120px;
+      padding:12px 20px;
+      font-size:16px;
+      border-radius:8px;
+    }
+
+    /* ===== BREAKPOINT (force override with !important) ===== */
+    @media (max-width: 768px) {
+      .desktop-only { display:none !important; }
+      .mobile-only  { display:block !important; }
+      .schedule-wrapper{ padding:16px; }
+      .schedule-title{ white-space:normal; line-height:1.15; }
+      .table-responsive table { min-width:0; }
     }
   </style>
 </head>
 <body>
 <div id="app" class="app">
-  <h1>Schedule Builder
+  <h1>
+    Schedule Builder
     <button type="button" class="ghost" @click="openSettings">⚙️ Settings</button>
   </h1>
 
@@ -106,221 +115,277 @@
   <div class="control">
     <button type="button" @click="addLabel">+ Add Label</button>
   </div>
-  <table class="label-table">
-    <thead>
-      <tr>
-        <th class="label-col-drag">Drag</th>
-        <th class="label-col-visible">Visible</th>
-        <th>Label Name</th>
-        <th>Description</th>
-        <th>Date-Time (GMT-2)</th>
-        <th class="label-col-action">Action</th>
-      </tr>
-    </thead>
-    <tbody id="labelTbody">
-      <tr v-for="(lab, i) in labels" :key="lab.id" :class="{'row-hidden': !lab.visible}">
-        <td class="label-col-drag"><span class="handle" title="Drag to reorder">⠿</span></td>
-        <td class="label-col-visible" style="text-align:center">
-          <button type="button" class="toggle-btn"
-            :class="lab.visible ? 'toggle-green' : 'toggle-red'"
-            @click="toggleLabelVisible(lab)">
-          </button>
-        </td>
-        <td><input v-model="lab.name" placeholder="Label Name" /></td>
-        <td><input v-model="lab.desc" placeholder="Description..." /></td>
-        <td><input type="datetime-local" step="60" v-model="lab.dt" /></td>
-        <td class="label-col-action" style="text-align:center">
-          <button type="button" @click="removeLabel(i)">Remove</button>
-        </td>
-      </tr>
-    </tbody>
-  </table>
 
-  <!-- Schedule (centered flex) -->
-  <div class="schedule-center">
-    <div class="schedule-wrapper" id="scheduleSection">
-      <div class="schedule-title">Schedule</div>
-      <table class="tz-table">
-        <thead>
-          <tr>
-            <th class="tz-col-label">Label</th>
-            <th v-for="t in sortedTargets" :key="'ht-'+t.tz" :title="t.label">{{ t.short }}</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="lab in activeLabels" :key="'r-'+lab.id">
-            <td class="tz-col-label">
-              {{ lab.name || '—' }}
-              <span v-if="lab.desc" class="desc">{{ lab.desc }}</span>
-            </td>
-            <td v-for="t in sortedTargets" :key="lab.id+'-'+t.tz">
-              <div v-if="lab.dt">
-                <div class="time">{{ formatForLabel(lab, t.tz).time }}</div>
-                <div class="dow">{{ formatForLabel(lab, t.tz).dow }}</div>
-              </div>
-              <div v-else>-</div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+  <!-- Desktop -->
+  <div class="table-responsive desktop-only">
+    <table class="label-table">
+      <thead>
+        <tr>
+          <th>Drag</th>
+          <th>Visible</th>
+          <th>Label Name</th>
+          <th>Description</th>
+          <th>Date-Time (GMT-2)</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="labelTbody">
+        <tr v-for="(lab,i) in labels" :key="lab.id" :class="{'row-hidden': !lab.visible}">
+          <td><span class="handle" title="Drag to reorder">⠿</span></td>
+          <td style="text-align:center">
+            <button type="button" class="toggle-btn-sm" :class="lab.visible?'toggle-green':'toggle-red'" @click="toggleLabelVisible(lab)"></button>
+          </td>
+          <td><input v-model="lab.name" placeholder="Label Name"></td>
+          <td><input v-model="lab.desc" placeholder="Description..."></td>
+          <td><input type="datetime-local" step="60" v-model="lab.dt"></td>
+          <td style="text-align:center"><button type="button" @click="askRemove(i)">Remove</button></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Mobile -->
+  <div id="labelListMobile" class="label-list-mobile mobile-only">
+    <div class="label-card" v-for="(lab,i) in labels" :key="'m-'+lab.id" :class="{'row-hidden': !lab.visible}">
+      <div class="label-card-header">
+        <span class="handle-mobile" title="Drag to reorder">⠿</span>
+        <div class="name"><input v-model="lab.name" placeholder="Label Name"></div>
+        <button type="button" class="toggle-btn-sm" :class="lab.visible?'toggle-green':'toggle-red'" @click="toggleLabelVisible(lab)"></button>
+      </div>
+      <div class="label-card-body">
+        <input v-model="lab.desc" placeholder="Description...">
+        <input type="datetime-local" step="60" v-model="lab.dt">
+      </div>
+      <div class="label-card-footer">
+        <button type="button" class="btn-icon" aria-label="Delete" title="Delete" @click="askRemove(i)">🗑️</button>
+      </div>
     </div>
   </div>
 
-  <!-- Save button OUTSIDE scheduleSection -->
-  <div style="text-align:center; margin-top:16px;">
+  <!-- Schedule -->
+  <div class="schedule-center">
+    <div class="schedule-wrapper" id="scheduleSection">
+      <div class="schedule-title">Schedule</div>
+      <div class="table-responsive" id="scheduleScroller">
+        <table class="tz-table" id="scheduleTable">
+          <thead>
+            <tr>
+              <th class="tz-col-label">Label</th>
+              <th v-for="t in sortedTargets" :key="'ht-'+t.tz" :title="t.label">{{ t.short }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="lab in activeLabels" :key="'r-'+lab.id">
+              <td class="tz-col-label">
+                {{ lab.name || '—' }}
+                <span v-if="lab.desc" class="desc">{{ lab.desc }}</span>
+              </td>
+              <td v-for="t in sortedTargets" :key="lab.id+'-'+t.tz">
+                <div v-if="lab.dt">
+                  <div class="time">{{ formatForLabel(lab, t.tz).time }}</div>
+                  <div class="dow">{{ formatForLabel(lab, t.tz).dow }}</div>
+                </div>
+                <div v-else>-</div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div> <!-- /.table-responsive -->
+    </div>
+  </div>
+
+  <!-- Save -->
+  <div style="text-align:center;margin-top:16px;">
     <button type="button" @click="saveAsImage">💾 Save as PNG</button>
   </div>
 
   <!-- Footer -->
-  <div class="footer">
-    © 2025 BonesBoom — Not affiliated with Last War: Survival or First Fun.
-  </div>
+  <div class="footer">© 2025 BonesBoom — Not affiliated with Last War: Survival or First Fun.</div>
 
-  <!-- Modal Settings -->
+  <!-- Settings Modal -->
   <div v-if="showSettings" class="modal-backdrop" @click.self="closeSettings">
     <div class="modal">
       <h3>Settings</h3>
       <div>
         <label>Order Time Zone:</label><br>
         <select v-model="settings.order">
-          <option value="asc">Offset ASC (น้อย→มาก)</option>
-          <option value="desc">Offset DESC (มาก→น้อย)</option>
+          <option value="asc">Offset ASC (low → high)</option>
+          <option value="desc">Offset DESC (high → low)</option>
           <option value="fixed">Fixed Order</option>
         </select>
       </div>
       <div class="modal-footer">
-        <button type="button" class="ghost" @click="clearData">Clear Save Data</button>
+        <button type="button" class="ghost" @click="clearData">Clear Saved Data</button>
         <button type="button" @click="closeSettings">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirm Delete Modal -->
+  <div v-if="deleteIndex !== null" class="modal-backdrop" @click.self="cancelRemove">
+    <div class="modal">
+      <h3>Confirm Delete</h3>
+      <p>Delete: <strong>{{ labels[deleteIndex]?.name || 'this label' }}</strong> ?</p>
+      <div class="modal-footer">
+        <button type="button" class="ghost" @click="cancelRemove">Cancel</button>
+        <button type="button" @click="confirmRemove">Delete</button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- Vue 3 -->
+<!-- Vue / Sortable / html2canvas -->
 <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
-<!-- SortableJS -->
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
-<!-- html2canvas -->
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
 <script>
-const { createApp, reactive, onMounted, computed, watch } = Vue;
-
-createApp({
-  setup() {
-    const STORAGE_KEY = "tz-app-data";
-    const DEFAULT_SETTINGS = { order:'asc' };
-    const DEFAULT_LABELS = [{id:1, name:'Default Label', desc:'', dt:'', visible:true}];
-
-    const ordinal = n => { const s=["th","st","nd","rd"], v=n%100; return n + (s[(v-20)%10] || s[v] || s[0]); };
-    const buildUtcFromGmtMinus2 = (dateStr, timeStr) => {
-      const [y,m,d] = dateStr.split('-').map(Number);
-      const [hh,mm] = timeStr.split(':').map(Number);
-      return new Date(Date.UTC(y, m-1, d, hh+2, mm, 0, 0));
-    };
-    const fmtLine = (utcDate, tz) => {
-      const dtf = new Intl.DateTimeFormat('en-GB', {
-        timeZone: tz, hour12: false, hour:'2-digit', minute:'2-digit',
-        year:'numeric', month:'short', day:'2-digit', weekday:'short'
-      });
-      const parts = Object.fromEntries(dtf.formatToParts(utcDate).map(p=>[p.type,p.value]));
-      return { time: `${parts.hour}:${parts.minute}`, dow: `${parts.weekday} ${ordinal(Number(parts.day))}` };
-    };
-    function getOffsetMinutes(tz) {
-      try {
-        const s = new Intl.DateTimeFormat('en-US', { timeZone: tz, hour:'2-digit', timeZoneName:'shortOffset' }).format(new Date());
-        const m = s.match(/GMT([+-]\d{1,2})(?::(\d{2}))?/i);
-        if (m) { const h = parseInt(m[1], 10); const mins = m[2] ? parseInt(m[2], 10) : 0; return h*60+(h>=0?mins:-mins); }
-      } catch {}
-      return 0;
-    }
-
-    let saved = null;
-    try { saved = JSON.parse(localStorage.getItem(STORAGE_KEY)); } catch {}
-    const normalizeLabels = (arr) =>
-      (Array.isArray(arr) ? arr : []).map((l,idx)=>({
+Vue.createApp({
+  data(){
+    const STORAGE_KEY="tz-app-data";
+    let saved=null; try{ saved=JSON.parse(localStorage.getItem(STORAGE_KEY)); }catch{}
+    const DEFAULT_LABELS=[{id:1,name:"Default Label",desc:"",dt:"",visible:true}];
+    return {
+      STORAGE_KEY,
+      labels: (saved?.labels && saved.labels.length) ? saved.labels.map((l,idx)=>({
         id: l.id ?? Date.now()+idx,
         name: l.name ?? `Label ${idx+1}`,
         desc: l.desc ?? '',
         dt: l.dt ?? '',
-        visible: (typeof l.visible === 'boolean') ? l.visible : true
-      }));
-
-    const state = reactive({
-      labels: (saved?.labels && saved.labels.length) ? normalizeLabels(saved.labels) : DEFAULT_LABELS,
-      targets: [
-        { tz:'America/Chicago',     label:'CST/CDT - Central Time', short:'CST' },
-        { tz:'America/New_York',    label:'EST/EDT - Eastern Time', short:'EST' },
-        { tz:'America/Los_Angeles', label:'Los Angeles',            short:'LA'  },
-        { tz:'Asia/Manila',         label:'Manila',                 short:'MNL' },
-        { tz:'Asia/Bangkok',        label:'Bangkok',                short:'BKK' },
+        visible: (typeof l.visible==='boolean') ? l.visible : true
+      })) : DEFAULT_LABELS,
+      settings: saved?.settings || {order:'asc'},
+      targets:[
+        {tz:'America/Chicago',     label:'CST/CDT - Central Time', short:'CST'},
+        {tz:'America/New_York',    label:'EST/EDT - Eastern Time', short:'EST'},
+        {tz:'America/Los_Angeles', label:'Los Angeles',            short:'LA'},
+        {tz:'Asia/Manila',         label:'Manila',                 short:'MNL'},
+        {tz:'Asia/Bangkok',        label:'Bangkok',                short:'BKK'}
       ],
       showSettings:false,
-      settings: saved?.settings || DEFAULT_SETTINGS
-    });
-
-    const sortedTargets = computed(() => {
-      if (state.settings.order === 'fixed') return state.targets;
-      return [...state.targets].map(t=>({...t, offset:getOffsetMinutes(t.tz)}))
-        .sort((a,b)=> state.settings.order==='asc' ? a.offset-b.offset : b.offset-a.offset);
-    });
-    const activeLabels = computed(()=> state.labels.filter(l=>l.visible));
-
-    function formatForLabel(lab, tz){
-      if (!lab.dt) return {time:"--:--", dow:""};
-      const [dPart, tPart] = lab.dt.split('T');
-      const utc = buildUtcFromGmtMinus2(dPart, tPart);
-      return fmtLine(utc, tz);
+      deleteIndex:null
     }
+  },
+  computed:{
+    sortedTargets(){
+      if (this.settings.order === 'fixed') return this.targets;
+      const getOffset=(tz)=>{
+        try{
+          const s=new Intl.DateTimeFormat('en-US',{timeZone:tz,hour:'2-digit',timeZoneName:'shortOffset'}).format(new Date());
+          const m=s.match(/GMT([+-]\d{1,2})(?::(\d{2}))?/i);
+          if(m){const h=parseInt(m[1],10);const mins=m[2]?parseInt(m[2],10):0;return h*60+(h>=0?mins:-mins);}
+        }catch{}
+        return 0;
+      };
+      return [...this.targets].map(t=>({...t,offset:getOffset(t.tz)}))
+        .sort((a,b)=> this.settings.order==='asc' ? a.offset-b.offset : b.offset-a.offset);
+    },
+    activeLabels(){ return this.labels.filter(l=>l.visible); }
+  },
+  methods:{
+    ordinal(n){ const s=["th","st","nd","rd"], v=n%100; return n + (s[(v-20)%10] || s[v] || s[0]); },
+    buildUtc(dateStr,timeStr){
+      const [y,m,d]=dateStr.split('-').map(Number);
+      const [hh,mm]=timeStr.split(':').map(Number);
+      // Input is GMT-2 → convert to UTC (+2 hours)
+      return new Date(Date.UTC(y, m-1, d, hh+2, mm, 0, 0));
+    },
+    fmtLine(utc,tz){
+      const dtf=new Intl.DateTimeFormat('en-GB',{timeZone:tz,hour12:false,hour:'2-digit',minute:'2-digit',weekday:'short',day:'2-digit'});
+      const parts=Object.fromEntries(dtf.formatToParts(utc).map(p=>[p.type,p.value]));
+      return { time:`${parts.hour}:${parts.minute}`, dow:`${parts.weekday} ${this.ordinal(Number(parts.day))}` };
+    },
+    formatForLabel(lab,tz){
+      if(!lab.dt) return {time:"--:--", dow:""};
+      const [d,t]=lab.dt.split('T');
+      return this.fmtLine(this.buildUtc(d,t), tz);
+    },
+    addLabel(){ this.labels.push({id:Date.now(), name:`Label ${this.labels.length+1}`, desc:'', dt:'', visible:true}); },
+    toggleLabelVisible(l){ l.visible=!l.visible; },
+    askRemove(i){ this.deleteIndex=i; },
+    cancelRemove(){ this.deleteIndex=null; },
+    confirmRemove(){
+      if (this.deleteIndex!==null){
+        if (this.labels.length<=1){ alert('At least one label is required'); this.deleteIndex=null; return; }
+        this.labels.splice(this.deleteIndex,1);
+        this.deleteIndex=null;
+      }
+    },
+    openSettings(){ this.showSettings=true; },
+    closeSettings(){ this.showSettings=false; },
+    clearData(){
+      localStorage.removeItem(this.STORAGE_KEY);
+      this.labels=[{id:1,name:"Default Label",desc:"",dt:"",visible:true}];
+      this.settings={order:'asc'};
+      this.deleteIndex=null;
+      this.showSettings=false;
+    },
+    persist(){ localStorage.setItem(this.STORAGE_KEY, JSON.stringify({labels:this.labels, settings:this.settings})); },
+    // Save PNG: clone Title + Table to an off-screen DOM (no overflow tampering)
+    saveAsImage(){
+      const wrapper=document.getElementById("scheduleSection");
+      const titleEl=wrapper?.querySelector(".schedule-title");
+      const tableEl=document.getElementById("scheduleTable");
+      if(!wrapper||!titleEl||!tableEl) return;
 
-    function addLabel(){ state.labels.push({id:Date.now(), name:`Label ${state.labels.length+1}`, desc:'', dt:'', visible:true}); }
-    function removeLabel(i){ if (state.labels.length === 1) { alert('ต้องมีอย่างน้อย 1 label เสมอ'); return; } state.labels.splice(i,1); }
-    function toggleLabelVisible(lab){ lab.visible = !lab.visible; }
+      const tempHost=document.createElement("div");
+      tempHost.style.position="fixed";
+      tempHost.style.left="-10000px";
+      tempHost.style.top="0";
+      tempHost.style.background="#fff";
 
-    function openSettings(){ state.showSettings=true }
-    function closeSettings(){ state.showSettings=false }
+      const origStyles=getComputedStyle(wrapper);
+      const tempWrapper=document.createElement("div");
+      tempWrapper.className="schedule-wrapper";
+      tempWrapper.style.padding=origStyles.padding;
+      tempWrapper.style.background="#fff";
+      tempWrapper.style.borderRadius=origStyles.borderRadius;
 
-    function saveData(){ localStorage.setItem(STORAGE_KEY, JSON.stringify({ labels:state.labels, settings:state.settings })); }
-    watch(()=>state.labels, saveData,{deep:true})
-    watch(()=>state.settings, saveData,{deep:true})
+      const tempTitle=titleEl.cloneNode(true);
+      const tempTable=tableEl.cloneNode(true);
 
-    function clearData(){
-      localStorage.removeItem(STORAGE_KEY);
-      state.labels=[...DEFAULT_LABELS];
-      state.settings={...DEFAULT_SETTINGS};
-      closeSettings();
-    }
+      tempWrapper.appendChild(tempTitle);
+      tempWrapper.appendChild(tempTable);
+      tempHost.appendChild(tempWrapper);
+      document.body.appendChild(tempHost);
 
-    // Save image: capture ONLY scheduleSection, width = table actual width
-    async function saveAsImage(){
-      const el = document.getElementById("scheduleSection");
-      const width = el.scrollWidth || el.offsetWidth;
-      const canvas = await html2canvas(el, {
-        backgroundColor:"#fff",
-        scale: 2,
-        width,
-        windowWidth: width
+      const captureWidth=tempWrapper.scrollWidth||tempWrapper.offsetWidth||800;
+
+      html2canvas(tempWrapper,{
+        backgroundColor:"#fff", scale:2, width:captureWidth, windowWidth:captureWidth
+      }).then(canvas=>{
+        const link=document.createElement("a");
+        link.download="schedule.png";
+        link.href=canvas.toDataURL("image/png");
+        link.click();
+      }).finally(()=>{
+        document.body.removeChild(tempHost);
       });
-      const link = document.createElement("a");
-      link.download = "schedule.png";
-      link.href = canvas.toDataURL("image/png");
-      link.click();
     }
-
-    onMounted(()=>{
-      Sortable.create(document.getElementById("labelTbody"),{
-        handle:".handle",animation:150,ghostClass:"sortable-ghost",chosenClass:"sortable-chosen",
-        onEnd:e=>{const m=state.labels.splice(e.oldIndex,1)[0];state.labels.splice(e.newIndex,0,m);}
-      })
-    })
-
-    return {
-      ...state,
-      addLabel, removeLabel, toggleLabelVisible,
-      formatForLabel, sortedTargets, activeLabels,
-      openSettings, closeSettings, clearData,
-      saveAsImage
-    };
+  },
+  watch:{
+    labels: { handler:'persist', deep:true },
+    settings:{ handler:'persist', deep:true }
+  },
+  mounted(){
+    // Drag (desktop)
+    const tbody=document.getElementById("labelTbody");
+    if(tbody){
+      Sortable.create(tbody,{
+        handle:".handle",
+        animation:150, ghostClass:"sortable-ghost", chosenClass:"sortable-chosen",
+        onEnd:(e)=>{ const m=this.labels.splice(e.oldIndex,1)[0]; this.labels.splice(e.newIndex,0,m); }
+      });
+    }
+    // Drag (mobile)
+    const mobileList=document.getElementById("labelListMobile");
+    if(mobileList){
+      Sortable.create(mobileList,{
+        handle:".handle-mobile",
+        animation:150, ghostClass:"sortable-ghost", chosenClass:"sortable-chosen",
+        onEnd:(e)=>{ const m=this.labels.splice(e.oldIndex,1)[0]; this.labels.splice(e.newIndex,0,m); }
+      });
+    }
   }
 }).mount('#app');
 </script>
